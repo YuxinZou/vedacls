@@ -12,6 +12,7 @@ def parse_args():
     parser.add_argument('config', type=str, help='config file path')
     parser.add_argument('checkpoint', type=str, help='checkpoint file path')
     parser.add_argument('inp', type=str, help='input video path')
+    parser.add_argument('--save_path', type=str, default=None, help='video output path')
     args = parser.parse_args()
 
     return args
@@ -28,9 +29,11 @@ def main():
     runner = InferenceRunner(inference_cfg, common_cfg)
     runner.load_checkpoint(args.checkpoint)
 
-    output = runner.inference(args.inp)
-    print(output)
-    print(len(output))
+    # labels, scores = runner.inference(args.inp)
+    # print(labels)
+    # print(scores)
+
+    runner.plot(args.inp, args.save_pth)
 
 if __name__ == '__main__':
     main()

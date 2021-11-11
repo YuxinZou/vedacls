@@ -1,6 +1,7 @@
 import cv2
 import torch
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 from ..models import build_model
 from ..utils import load_checkpoint
@@ -111,6 +112,29 @@ class InferenceRunner(Common):
 
         results = torch.cat(results).cpu().numpy()
         labels = np.argmax(results, axis=1)
+        scores = np.max(results, axis=1)
 
-        return labels
+        return labels, scores, frames
 
+    def plot(self, video_path, save_pth):
+        assert save_pth is not None
+        labels, scores, frames = self.inference(video_path)
+        size = frames[0].shape[:2][::-1]
+
+        video = cv2.VideoWriter(
+            save_pth, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), self.fps,
+            size)
+
+        for i, frame in enumerate(frames):
+            if isinstance(frame, np.ndarray):
+                frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            draw = ImageDraw.Draw(frame)
+
+            label = labels[i]
+            score = scores[i]
+            draw.text((10, 10), f"{label}, {score:.4f}", (255, 0, 0))
+
+            frame = cv2.cvtColor(np.asarray(frame), cv2.COLOR_RGB2BGR)
+            video.write(frame)
+
+        video.release()
