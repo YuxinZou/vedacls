@@ -7,9 +7,9 @@ padding_value = 127.5
 img_norm_cfg = dict(mean=0.5, std=0.5, max_pixel_value=255.0)
 
 inference = dict(
-    gpu_id='1',
+    gpu_id='2',
     transform=[
-        # dict(type='Resize', height=height, width=width),
+        dict(type='Resize', height=height, width=width),
         # dict(type='CenterCrop', height=crop_size, width=crop_size),
         dict(type='Normalize', **img_norm_cfg),
         dict(type='ToTensor'),
@@ -19,6 +19,8 @@ inference = dict(
         num_classes=2,
         pretrained=True,
     ),
+    batch=32,
+    fsp=-1
 )
 
 # 2. configuration for train/test

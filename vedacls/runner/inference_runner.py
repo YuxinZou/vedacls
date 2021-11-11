@@ -17,6 +17,7 @@ class InferenceRunner(Common):
 
         # common cfg
         self.batch = inference_cfg.get('batch', 1)
+        self.fps = inference_cfg.get('fps', -1)
         # build test transform
         self.transform = self._build_transform(inference_cfg['transform'])
         # build model
