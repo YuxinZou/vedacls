@@ -12,7 +12,7 @@ def parse_args():
     parser.add_argument('config', type=str, help='config file path')
     parser.add_argument('checkpoint', type=str, help='checkpoint file path')
     parser.add_argument('inp', type=str, help='input video path')
-    parser.add_argument('--save_path', type=str, default=None, help='video output path')
+    parser.add_argument('--save_pth', type=str, default=None, help='video output path')
     args = parser.parse_args()
 
     return args
@@ -32,7 +32,8 @@ def main():
     # labels, scores = runner.inference(args.inp)
     # print(labels)
     # print(scores)
-
+    args.save_pth = args.inp.split('/')[-1]
+    print(args.save_pth)
     runner.plot(args.inp, args.save_pth)
 
 if __name__ == '__main__':

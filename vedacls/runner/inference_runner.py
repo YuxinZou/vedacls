@@ -19,6 +19,7 @@ class InferenceRunner(Common):
         # common cfg
         self.batch = inference_cfg.get('batch', 1)
         self.fps = inference_cfg.get('fps', -1)
+        self.class_name = inference_cfg['class_name']
         # build test transform
         self.transform = self._build_transform(inference_cfg['transform'])
         # build model
@@ -101,12 +102,12 @@ class InferenceRunner(Common):
         with torch.no_grad():
             clips = int(np.ceil(images.shape[0] / self.batch))
             for i in range(clips):
-                frames = images[i * self.batch:(i + 1) * self.batch]
+                batch = images[i * self.batch:(i + 1) * self.batch]
 
                 if self.use_gpu:
-                    frames = frames.cuda()
+                    batch = batch.cuda()
 
-                output = self.model(frames)
+                output = self.model(batch)
                 output = torch.softmax(output, dim=-1)
                 results.append(output)
 
@@ -124,7 +125,7 @@ class InferenceRunner(Common):
         video = cv2.VideoWriter(
             save_pth, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), self.fps,
             size)
-
+        font_text = ImageFont.truetype("./fonts/SimHei.ttf", min(size) // 20)
         for i, frame in enumerate(frames):
             if isinstance(frame, np.ndarray):
                 frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
@@ -132,7 +133,7 @@ class InferenceRunner(Common):
 
             label = labels[i]
             score = scores[i]
-            draw.text((10, 10), f"{label}, {score:.4f}", (255, 0, 0))
+            draw.text((10, 10), f"{self.class_name[label]}, {score:.4f}", (255, 0, 0), font=font_text)
 
             frame = cv2.cvtColor(np.asarray(frame), cv2.COLOR_RGB2BGR)
             video.write(frame)

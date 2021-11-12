@@ -20,7 +20,9 @@ inference = dict(
         pretrained=True,
     ),
     batch=32,
-    fsp=-1
+    fsp=-1,
+    class_name=['按压滤纸', '未按压滤纸'],
+
 )
 
 # 2. configuration for train/test
