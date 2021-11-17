@@ -54,7 +54,7 @@ class TrainRunner(InferenceRunner):
         self.model.train()
 
         self.logger.info('Epoch {}, start training'.format(self.epoch + 1))
-        for idx, (img, label) in enumerate(self.train_dataloader):
+        for idx, (img, label, path) in enumerate(self.train_dataloader):
             self.optimizer.zero_grad()
 
             if self.use_gpu:
@@ -89,7 +89,7 @@ class TrainRunner(InferenceRunner):
 
         self.logger.info('Start validating')
         with torch.no_grad():
-            for idx, (img, label) in enumerate(self.val_dataloader):
+            for idx, (img, label, path) in enumerate(self.val_dataloader):
                 if self.use_gpu:
                     img = img.cuda()
 

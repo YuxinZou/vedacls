@@ -36,6 +36,7 @@ def main():
     common_cfg['workdir'] = workdir
 
     runner = TestRunner(test_cfg, inference_cfg, common_cfg)
+    # runner.save = True
     runner.load_checkpoint(args.checkpoint)
     runner()
 

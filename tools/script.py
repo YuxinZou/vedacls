@@ -2,8 +2,10 @@ import cv2
 import os
 import random
 import shutil
+import imgaug.augmenters as iaa
 
 from tqdm import tqdm
+
 
 def resize_img():
     src = '/DATA8_DB12/home/yuxinzou/zhongke/vedacls/data/val/1'
@@ -11,7 +13,7 @@ def resize_img():
     for i in tqdm(os.listdir(src)):
         fname = os.path.join(src, i)
         img = cv2.imread(fname)
-        img = cv2.resize(img, (480,270))
+        img = cv2.resize(img, (480, 270))
         cv2.imwrite(os.path.join(dst, i), img)
 
 
@@ -31,5 +33,16 @@ def split_trainval():
         shutil.move(fname, dst)
 
 
+def test_imgaug():
+    import numpy as np
+    trans = iaa.Resize((120, 140), interpolation="linear")
+    images = np.zeros((100, 112, 112, 1), dtype=np.uint8)  # two example images
+    # images[:, 64, 64, :] = 255
+    images_aug = trans(images=images)
+    print(type(images_aug))
+    for i in range(50):
+        print(images_aug[i].shape)
+
+
 if __name__ == '__main__':
-    resize_img()
+    test_imgaug()

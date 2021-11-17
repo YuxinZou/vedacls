@@ -115,7 +115,7 @@ class ImageFolder(BaseDataset):
         image = self.image_process(image)
         label = self.target_process(label)
 
-        return image, label
+        return image, label, image_file
 
     def __len__(self):
         return len(self.samples)
