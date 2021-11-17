@@ -19,11 +19,14 @@ inference = dict(
         num_classes=2,
         pretrained=True,
     ),
+    batch=32,
+    fsp=-1,
+    class_name=['按压滤纸', '未按压滤纸'],
 )
 
 # 2. configuration for train/test
 root_workdir = 'workdir'
-data_root = 'data_resize'
+data_root = 'data_resized'
 dataset_type = 'ImageFolder'
 
 common = dict(
@@ -52,7 +55,7 @@ test = dict(
         ),
         dataset=dict(
             type=dataset_type,
-            root=data_root + '/' + 'train',
+            root=data_root + '/' + 'val',
         ),
         transform=inference['transform'],
     ),
@@ -95,7 +98,7 @@ train = dict(
             ),
             dataset=dict(
                 type=dataset_type,
-                root=data_root + '/' + 'train',
+                root=data_root + '/' + 'val',
             ),
             transform=inference['transform'],
         ),
@@ -105,7 +108,7 @@ train = dict(
     lr_scheduler=dict(type='StepLR', step_size=30, gamma=0.1),
     max_epochs=90,
     log_interval=10,
-    trainval_ratio=10,
+    trainval_ratio=5,
     snapshot_interval=-1,
     save_best=True,
     resume=None,

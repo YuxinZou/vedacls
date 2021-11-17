@@ -6,8 +6,8 @@ import shutil
 from tqdm import tqdm
 
 def resize_img():
-    src = '/DATA8_DB12/home/yuxinzou/zhongke/vedacls/data/train/1'
-    dst = '/DATA8_DB12/home/yuxinzou/zhongke/vedacls/data_resize/train/1'
+    src = '/DATA8_DB12/home/yuxinzou/zhongke/vedacls/data/val/1'
+    dst = '/DATA8_DB12/home/yuxinzou/zhongke/vedacls/data_resized/val/1'
     for i in tqdm(os.listdir(src)):
         fname = os.path.join(src, i)
         img = cv2.imread(fname)
@@ -32,4 +32,4 @@ def split_trainval():
 
 
 if __name__ == '__main__':
-    # split_trainval()
+    resize_img()
