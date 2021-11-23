@@ -100,7 +100,7 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
-
+*.un~
 # Environments
 .env
 .venv
@@ -130,3 +130,9 @@ dmypy.json
 
 # my
 .idea/
+output/
+data/
+data_resize/
+data_resized/
+workdir/
+example/

@@ -9,7 +9,7 @@ padding_value = 127.5
 img_norm_cfg = dict(mean=0.5, std=0.5, max_pixel_value=255.0)
 
 inference = dict(
-    gpu_id='3',
+    gpu_id='4',
     transform=[
         # dict(type='Resize', height=height, width=width),
         # dict(type='CenterCrop', height=crop_size, width=crop_size),
@@ -57,7 +57,7 @@ test = dict(
         ),
         dataset=dict(
             type=dataset_type,
-            root=data_root + '/' + 'val',
+            root=data_root + '/' + 'train',
         ),
         transform=inference['transform'],
     ),

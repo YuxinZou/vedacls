@@ -52,7 +52,7 @@ class TestRunner(InferenceRunner):
                         _img += mean
                         _img = _img.astype(np.uint8)
                         count += 1
-                        cv2.imwrite(f'output/g{g}_p{p}.jpg', _img[:, :, (2, 1, 0)])
+                        cv2.imwrite(f'output/{g}/{count}_g{g}_p{p}.jpg', _img[:, :, (2, 1, 0)])
 
                 self.logger.info('Test, Iter {}, {}'.format(
                     idx+1,
