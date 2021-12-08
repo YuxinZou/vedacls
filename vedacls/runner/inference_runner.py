@@ -1,11 +1,67 @@
 import cv2
 import torch
+import json
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from ..models import build_model
 from ..utils import load_checkpoint
 from .base import Common
+
+
+def parse_json(json_path):
+    data = json.load(open(json_path, 'r'))['video']
+    return data
+
+
+def xywh2xyxy(box):
+    return np.array([box[0], box[1], box[0] + box[2], box[1] + box[3]])
+
+
+def cal_iou(box1, box2):
+    box1_ = xywh2xyxy(box1)
+    box2_ = xywh2xyxy(box2)
+    bxmin = max(box1_[0], box2_[0])
+    bymin = max(box1_[1], box2_[1])
+    bxmax = min(box1_[2], box2_[2])
+    bymax = min(box1_[3], box2_[3])
+
+    bbxmin = min(box1_[0], box2_[0])
+    bbymin = min(box1_[1], box2_[1])
+    bbxmax = max(box1_[2], box2_[2])
+    bbymax = max(box1_[3], box2_[3])
+
+    bwidth = bxmax - bxmin
+    bhight = bymax - bymin
+    if bwidth < 0 or bhight < 0:
+        return 0, [bbxmin, bbymin, bbxmax, bbymax]
+    inter = bwidth * bhight
+    union = (box1_[2] - box1_[0]) * (box1_[3] - box1_[1]) + (
+            box2_[2] - box2_[0]) * (
+                    box2_[3] - box2_[1]) - inter
+    return inter / union, [bbxmin, bbymin, bbxmax, bbymax]
+
+
+def unclip(box, shape, unclip_ratio=1.5, keep_ratio=True):
+    H, W = shape
+    w = box[2] - box[0]
+    h = box[3] - box[1]
+    if keep_ratio:
+        half_size = int(max(w, h) * (unclip_ratio - 1) / 2)
+        new_x1 = max((box[0] - half_size), 0)
+        new_y1 = max((box[1] - half_size), 0)
+        new_x2 = min((box[2] + half_size), W)
+        new_y2 = min((box[3] + half_size), H)
+    else:
+        center_w = int((box[2] + box[0]) / 2)
+        center_h = int((box[3] + box[1]) / 2)
+        half_size = int(max(w, h) * unclip_ratio / 2)
+        new_x1 = max((center_w - half_size), 0)
+        new_y1 = max((center_h - half_size), 0)
+        new_x2 = min((center_w + half_size), W)
+        new_y2 = min((center_h + half_size), H)
+
+    return [new_x1, new_y1, new_x2, new_y2]
 
 
 class InferenceRunner(Common):
@@ -96,7 +152,7 @@ class InferenceRunner(Common):
         return torch.cat(images)
 
     def inference(self, video_path):
-        frames, timestamps = self._load_video(video_path)
+        frames, _ = self._load_video(video_path)
         images = self._preprocess(frames)
         results = []
         with torch.no_grad():
@@ -117,6 +173,51 @@ class InferenceRunner(Common):
 
         return labels, scores, frames
 
+    def plot_v2(self, video_path, json_path, save_pth):
+        frames, _ = self._load_video(video_path)
+        size = frames[0].shape[:2][::-1]
+
+        video = cv2.VideoWriter(
+            save_pth, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), self.fps,
+            size)
+        font_text = ImageFont.truetype("./fonts/SimHei.ttf", min(size) // 20)
+
+        gt = parse_json(json_path)
+        assert len(frames) == len(gt)
+
+        for idx, (img, g) in enumerate(zip(frames, gt)):
+            if isinstance(img, np.ndarray):
+                frame = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            draw = ImageDraw.Draw(frame)
+
+            names = [box[0] for box in g['bbox_vector']]
+            if 'funnel_paper' not in names or 'glass_rod' not in names:
+                continue
+            for bbox in g['bbox_vector']:
+                if bbox[0] == 'funnel_paper':
+                    funnel_paper_box = bbox[-1]
+                elif bbox[0] == 'glass_rod':
+                    glass_rod_box = bbox[-1]
+            iou, max_box = cal_iou(funnel_paper_box, glass_rod_box)
+
+            if iou > 0:
+                max_box = unclip(max_box, img.shape[:2], keep_ratio=False)
+                crop_img = img[max_box[1]:max_box[3], max_box[0]:max_box[2], :]
+                probs = self.__call__(crop_img)
+                label = self.class_name[np.argmax(probs, axis=-1)]
+                score = np.max(probs)
+
+                draw.text((10, 10), f"不进行识别",
+                          (255, 0, 0), font=font_text)
+                draw.text((10, 15+min(size) // 20), f"{label}, {score:.4f}", (255, 0, 0), font=font_text)
+            else:
+                draw.text((10, 10), f"不进行识别",
+                          (255, 0, 0), font=font_text)
+
+            frame = cv2.cvtColor(np.asarray(frame), cv2.COLOR_RGB2BGR)
+            video.write(frame)
+        video.release()
+
     def plot(self, video_path, save_pth):
         assert save_pth is not None
         labels, scores, frames = self.inference(video_path)
@@ -133,7 +234,8 @@ class InferenceRunner(Common):
 
             label = labels[i]
             score = scores[i]
-            draw.text((10, 10), f"{self.class_name[label]}, {score:.4f}", (255, 0, 0), font=font_text)
+            draw.text((10, 10), f"{self.class_name[label]}, {score:.4f}",
+                      (255, 0, 0), font=font_text)
 
             frame = cv2.cvtColor(np.asarray(frame), cv2.COLOR_RGB2BGR)
             video.write(frame)

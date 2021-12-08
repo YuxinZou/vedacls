@@ -26,7 +26,7 @@ inference = dict(
 
 # 2. configuration for train/test
 root_workdir = 'workdir'
-data_root = 'data_crop'
+data_root = '/home/admin123/PycharmProjects/DATA/中科/按压v2/top/data_crop'
 dataset_type = 'ImageFolder'
 
 common = dict(
@@ -89,8 +89,8 @@ train = dict(
                 dict(type='ColorJitter'),
                 dict(type='Rotate', limit=(-30, 30), p=0.5, value=padding_value,
                      border_mode=cv2.BORDER_CONSTANT),
-                dict(type='Normalize', **img_norm_cfg),
-                dict(type='ToTensor'),
+                # dict(type='Normalize', **img_norm_cfg),
+                # dict(type='ToTensor'),
             ],
         ),
         val=dict(

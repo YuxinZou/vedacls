@@ -196,8 +196,8 @@ def show_gt():
             cv2.waitKey()
 
 
-def check_data(mode='val'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/{mode}'
+def check_data(mode='train'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -210,8 +210,8 @@ def check_data(mode='val'):
         assert len(origs) == 1
 
 
-def split_images(mode='val'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/{mode}'
+def split_images(mode='train'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -226,8 +226,8 @@ def split_images(mode='val'):
         subprocess.call(cmd, shell=True)
 
 
-def check_imageslen(mode='val'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/{mode}'
+def check_imageslen(mode='train'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -239,8 +239,8 @@ def check_imageslen(mode='val'):
         assert len(gt) == len(os.listdir(images_path))
 
 
-def show_img(mode='train'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/{mode}'
+def show_img(mode='val'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -279,8 +279,8 @@ def show_img(mode='train'):
                 cv2.waitKey()
 
 
-def crop_img(mode='train'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/{mode}'
+def crop_img(mode='val'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -325,7 +325,7 @@ def split_dataset():
     import random
     random.seed(0)
     print(random.random())
-    path = '/home/admin123/PycharmProjects/DATA/中科/按压v2/top/'
+    path = '/home/admin123/PycharmProjects/DATA/中科/按压v2/front/'
     data = os.listdir(path)
     train_folders = random.sample(data, int(len(data) * 0.8))
     val_folders = [d for d in data if d not in train_folders]
@@ -334,7 +334,7 @@ def split_dataset():
     print(val_folders)
     print(len(val_folders))
     for v in val_folders:
-        cmd = f'mv /home/admin123/PycharmProjects/DATA/中科/按压v2/top/{v} /home/admin123/PycharmProjects/DATA/中科/按压v2/val'
+        cmd = f'mv /home/admin123/PycharmProjects/DATA/中科/按压v2/front/{v} /home/admin123/PycharmProjects/DATA/中科/按压v2/val'
         subprocess.call(cmd, shell=True)
 
 
@@ -348,5 +348,15 @@ def move_data(mode='val'):
                         os.path.join(f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/cls_data/{mode}/0', f'top_{f}_{fname}'))
 
 
+def check_duplicate():
+    path1 = '/home/admin123/PycharmProjects/DATA/中科/按压v2/top/data_crop/train/0'
+    path2 = '/home/admin123/PycharmProjects/DATA/中科/按压v2/top/data_crop/train/1'
+    listA = os.listdir(path1)
+    listB = os.listdir(path2)
+    retA = [i for i in listA if i in listB]
+    retB = list(set(listA).intersection(set(listB)))
+    print(retA)
+    print(retB)
+
 if __name__ == '__main__':
-    # move_data()
+    check_duplicate()

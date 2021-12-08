@@ -36,6 +36,8 @@ def main():
         cv2.imshow('f', img)
         cv2.waitKey()
 
+import albumentations as albu
+albu.Rotate
 
 if __name__ == '__main__':
     main()
