@@ -7,10 +7,10 @@ padding_value = 127.5
 img_norm_cfg = dict(mean=0.5, std=0.5, max_pixel_value=255.0)
 
 inference = dict(
-    gpu_id='0',
+    gpu_id='2',
     transform=[
-        dict(type='Resize', height=crop_size, width=crop_size),
-        # dict(type='CenterCrop', height=crop_size, width=crop_size),
+        dict(type='Resize', height=size, width=size),
+        dict(type='CenterCrop', height=crop_size, width=crop_size),
         dict(type='Normalize', **img_norm_cfg),
         dict(type='ToTensor'),
     ],
@@ -26,7 +26,7 @@ inference = dict(
 
 # 2. configuration for train/test
 root_workdir = 'workdir'
-data_root = 'data_crop'
+data_root = 'data_crop_new'
 dataset_type = 'ImageFolder'
 
 common = dict(
@@ -47,7 +47,7 @@ test = dict(
     data=dict(
         dataloader=dict(
             type='DataLoader',
-            batch_size=256,
+            batch_size=128,
             shuffle=False,
             num_workers=4,
             pin_memory=True,
@@ -79,6 +79,7 @@ train = dict(
             ),
             transform=[
                 dict(type='Resize', height=size, width=size),
+                # dict(type='CenterCrop', height=crop_size, width=crop_size),
                 dict(type='RandomResizedCrop',
                      height=crop_size, width=crop_size, scale=(0.6, 1.0),
                      p=1),
@@ -86,9 +87,9 @@ train = dict(
                 dict(type='MotionBlur', blur_limit=(3, 7), p =0.5),
                 dict(type='HorizontalFlip'),
                 dict(type='VerticalFlip'),
-                dict(type='ColorJitter'),
-                dict(type='Rotate', limit=(-30, 30), p=0.5, value=padding_value,
-                     border_mode=cv2.BORDER_CONSTANT),
+                # dict(type='ColorJitter'),
+                # dict(type='Rotate', limit=(-30, 30), p=0.5, value=padding_value,
+                #      border_mode=cv2.BORDER_CONSTANT),
                 dict(type='Normalize', **img_norm_cfg),
                 dict(type='ToTensor'),
             ],

@@ -132,6 +132,7 @@ dmypy.json
 .idea/
 output/
 data/
+data_crop/
 data_resize/
 data_resized/
 workdir/
