@@ -40,6 +40,7 @@ common = dict(
     cudnn_deterministic=False,
     cudnn_benchmark=True,
     metric=dict(type='Accuracy', topk=(1,)),
+    # metric = dict(type='ConfusionMatrix', num_classes=3)
 )
 
 ## 2.1 configuration for test

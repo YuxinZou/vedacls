@@ -35,7 +35,7 @@ def main():
     # print(scores)
     args.save_pth = args.inp.split('/')[-1]
     print(args.save_pth)
-    if args.json_path:
+    if args.json_pth:
         runner.plot_v2(args.inp, args.json_pth, args.save_pth)
     else:
         runner.plot(args.inp, args.save_pth)

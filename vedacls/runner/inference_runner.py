@@ -207,9 +207,9 @@ class InferenceRunner(Common):
                 label = self.class_name[np.argmax(probs, axis=-1)]
                 score = np.max(probs)
 
-                draw.text((10, 10), f"不进行识别",
-                          (255, 0, 0), font=font_text)
-                draw.text((10, 15+min(size) // 20), f"{label}, {score:.4f}", (255, 0, 0), font=font_text)
+                draw.text((10, 10), f"进行识别",
+                          (0, 0, 255), font=font_text)
+                draw.text((10, 15+min(size) // 20), f"{label}, {score:.4f}", (0, 0, 255), font=font_text)
             else:
                 draw.text((10, 10), f"不进行识别",
                           (255, 0, 0), font=font_text)
