@@ -173,6 +173,61 @@ class InferenceRunner(Common):
 
         return labels, scores, frames
 
+    def plot_v3(self, video_path, json_path, save_pth):
+        frames, _ = self._load_video(video_path)
+        size = frames[0].shape[:2][::-1]
+
+        video = cv2.VideoWriter(
+            save_pth, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), self.fps,
+            size)
+        font_text = ImageFont.truetype("./fonts/SimHei.ttf", min(size) // 20)
+
+        gt = parse_json(json_path)
+        assert len(frames) == len(gt)
+        texts = []
+
+        for idx, (img, g) in enumerate(zip(frames, gt)):
+            names = [box[0] for box in g['bbox_vector']]
+            if 'funnel_paper' not in names or 'glass_rod' not in names:
+                continue
+            for bbox in g['bbox_vector']:
+                if bbox[0] == 'funnel_paper':
+                    funnel_paper_box = bbox[-1]
+                elif bbox[0] == 'glass_rod':
+                    glass_rod_box = bbox[-1]
+            iou, max_box = cal_iou(funnel_paper_box, glass_rod_box)
+
+            if iou > 0:
+                max_box = unclip(max_box, img.shape[:2], keep_ratio=False)
+                crop_img = img[max_box[1]:max_box[3], max_box[0]:max_box[2], :]
+                probs = self.__call__(crop_img)
+                label = self.class_name[np.argmax(probs, axis=-1)]
+                score = np.max(probs)
+                texts.append(['进行识别', f"{label}, {score:.4f}"])
+            else:
+                texts.append(['不进行识别', f""])
+
+        if len(texts) >= 5:
+            for i in range(2, len(texts)-2):
+                if texts[i] == '不进行识别':
+                    continue
+                text = [text[1].split(',')[0] for text in texts[i-2:i+2]]
+                text = [x for x in text if x != '']
+                maxlabel = max(text, key=text.count)
+                texts[i] = maxlabel
+
+        for idx, (img, text) in enumerate(zip(frames, texts)):
+            frame = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            draw = ImageDraw.Draw(frame)
+
+            draw.text((10, 10), text[0], (255, 0, 0), font=font_text)
+            draw.text((10, 15 + min(size) // 20), text[1], (255, 0, 0),
+                      font=font_text)
+
+            frame = cv2.cvtColor(np.asarray(frame), cv2.COLOR_RGB2BGR)
+            video.write(frame)
+        video.release()
+
     def plot_v2(self, video_path, json_path, save_pth):
         frames, _ = self._load_video(video_path)
         size = frames[0].shape[:2][::-1]
@@ -209,7 +264,8 @@ class InferenceRunner(Common):
 
                 draw.text((10, 10), f"进行识别",
                           (0, 0, 255), font=font_text)
-                draw.text((10, 15+min(size) // 20), f"{label}, {score:.4f}", (0, 0, 255), font=font_text)
+                draw.text((10, 15 + min(size) // 20), f"{label}, {score:.4f}",
+                          (0, 0, 255), font=font_text)
             else:
                 draw.text((10, 10), f"不进行识别",
                           (255, 0, 0), font=font_text)
