@@ -7,7 +7,7 @@ padding_value = 127.5
 img_norm_cfg = dict(mean=0.5, std=0.5, max_pixel_value=255.0)
 
 inference = dict(
-    gpu_id='2',
+    gpu_id='3',
     transform=[
         dict(type='Resize', height=size, width=size),
         dict(type='CenterCrop', height=crop_size, width=crop_size),
@@ -21,12 +21,12 @@ inference = dict(
     ),
     batch=32,
     fsp=-1,
-    class_name=['按压滤纸', '未按压滤纸', '未知'],
+    class_name=['按压滤纸', '未按压滤纸', '人工介入'],
 )
 
 # 2. configuration for train/test
 root_workdir = 'workdir'
-data_root = 'data_incremental'
+data_root = 'data_v3'
 dataset_type = 'ImageFolder'
 
 common = dict(
@@ -56,7 +56,7 @@ test = dict(
         ),
         dataset=dict(
             type=dataset_type,
-            root=data_root + '/' + 'valtest',
+            root=data_root + '/' + 'val',
         ),
         transform=inference['transform'],
     ),

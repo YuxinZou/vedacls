@@ -38,6 +38,7 @@ class ConfusionMatrix(Base):
         norm_cm = self.confusion_matrix / (
             self.confusion_matrix.sum(axis=1).reshape(-1, 1) + 1e-6)
         acc = norm_cm[np.arange(self.num_classes), np.arange(self.num_classes)].mean()
+        print(self.confusion_matrix.astype(np.uint32))
         res['acc'] = acc
 
         return res

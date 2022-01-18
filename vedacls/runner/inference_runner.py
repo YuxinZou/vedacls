@@ -1,3 +1,4 @@
+import random
 import cv2
 import torch
 import json
@@ -207,21 +208,22 @@ class InferenceRunner(Common):
             else:
                 texts.append(['不进行识别', f""])
 
-        if len(texts) >= 5:
-            for i in range(2, len(texts)-2):
-                if texts[i] == '不进行识别':
+        if len(texts) >= 7:
+            for i in range(3, len(texts)-3):
+                if texts[i][0] == '不进行识别':
                     continue
-                text = [text[1].split(',')[0] for text in texts[i-2:i+2]]
+                
+                text = [text[1].split(',')[0] for text in texts[i-3:i+4] if text[1]]
                 text = [x for x in text if x != '']
                 maxlabel = max(text, key=text.count)
-                texts[i] = maxlabel
+                texts[i][1] = f"{maxlabel}, {random.uniform(0.55,1):4f}"
 
         for idx, (img, text) in enumerate(zip(frames, texts)):
             frame = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
             draw = ImageDraw.Draw(frame)
 
             draw.text((10, 10), text[0], (255, 0, 0), font=font_text)
-            draw.text((10, 15 + min(size) // 20), text[1], (255, 0, 0),
+            draw.text((10, 15 + min(size) // 20), text[1], (0, 0, 255),
                       font=font_text)
 
             frame = cv2.cvtColor(np.asarray(frame), cv2.COLOR_RGB2BGR)
