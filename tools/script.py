@@ -210,8 +210,8 @@ def check_data(mode='train'):
         assert len(origs) == 1
 
 
-def split_images(mode='train'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
+def split_images(mode='val'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/20220117过滤接口数据/model2/top/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -226,8 +226,8 @@ def split_images(mode='train'):
         subprocess.call(cmd, shell=True)
 
 
-def check_imageslen(mode='train'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
+def check_imageslen(mode='val'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/玻璃棒按压滤纸/top/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -280,7 +280,7 @@ def show_img(mode='val'):
 
 
 def crop_img(mode='val'):
-    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/front/{mode}'
+    path = f'/home/admin123/PycharmProjects/DATA/中科/20220117过滤接口数据/model2/top/{mode}'
     # check file name
     folders = os.listdir(path)
     for f in sorted(folders):
@@ -289,7 +289,7 @@ def crop_img(mode='val'):
                      fname.endswith('json')]
         images_path = os.path.join(sufolder, 'images')
         os.makedirs(os.path.join(sufolder, 'crop_images'), exist_ok=True)
-        gt = json.load(open(os.path.join(sufolder, json_file[0]), 'r'))['video']
+        gt = json.load(open(os.path.join(sufolder, json_file[0]), 'r'))
         images = sorted(os.listdir(images_path))
         for i, (image, g) in enumerate(zip(images, gt)):
             img = cv2.imread(os.path.join(images_path, image))
@@ -325,7 +325,7 @@ def split_dataset():
     import random
     random.seed(0)
     print(random.random())
-    path = '/home/admin123/PycharmProjects/DATA/中科/按压v2/front/'
+    path = '/home/admin123/PycharmProjects/DATA/中科/20220117过滤接口数据/model2/top'
     data = os.listdir(path)
     train_folders = random.sample(data, int(len(data) * 0.8))
     val_folders = [d for d in data if d not in train_folders]
@@ -333,19 +333,23 @@ def split_dataset():
     print(len(train_folders))
     print(val_folders)
     print(len(val_folders))
+    dst = os.path.join(path, 'val')
+    os.makedirs(dst, exist_ok=True)
     for v in val_folders:
-        cmd = f'mv /home/admin123/PycharmProjects/DATA/中科/按压v2/front/{v} /home/admin123/PycharmProjects/DATA/中科/按压v2/val'
+        cmd = f'mv {path}/{v} {dst}'
         subprocess.call(cmd, shell=True)
 
 
 def move_data(mode='val'):
-    src = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/{mode}'
+    src = f'/home/admin123/PycharmProjects/DATA/中科/20220117过滤接口数据/model2/top/{mode}'
+    dst = f'/home/admin123/PycharmProjects/DATA/中科/20220117过滤接口数据/model2/top/cls_data/{mode}/0'
+    os.makedirs(dst, exist_ok=True)
     for f in os.listdir(src):
         print(f)
         subdolder = os.path.join(src, f, 'crop_images')
         for fname in os.listdir(subdolder):
             shutil.copy(os.path.join(subdolder, fname),
-                        os.path.join(f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/cls_data/{mode}/0', f'top_{f}_{fname}'))
+                        os.path.join(dst, f'top_{f}_{fname}'))
 
 
 def check_duplicate():
@@ -358,5 +362,62 @@ def check_duplicate():
     print(retA)
     print(retB)
 
+
+def merge_video():
+    path = f'/home/admin123/PycharmProjects/gitlab/zhongke_exps/model_2/test_data/model2/data_incremental'
+    video_list = sorted(os.listdir(os.path.join(path, 'video')))
+    json_list = sorted(os.listdir(os.path.join(path, 'json')))
+    dst = '/home/admin123/PycharmProjects/gitlab/zhongke_exps/model_2/test_data/model2/data_incremental/new_data'
+    os.makedirs(dst, exist_ok=True)
+    for v, j in zip(video_list, json_list):
+        print(v)
+        title = v.split('-')[0]
+        print(title)
+        os.makedirs(os.path.join(dst, title), exist_ok=True)
+        shutil.move(os.path.join(path, 'video', v), os.path.join(dst, title))
+        shutil.move(os.path.join(path, 'json', j), os.path.join(dst, title))
+
+
+def show_gt_single():
+    import json
+    image_path = '/home/admin123/PycharmProjects/DATA/中科/20220117过滤接口数据/model3/front/310839/images'
+    json_file = f'/home/admin123/PycharmProjects/DATA/中科/20220117过滤接口数据/model3/front/310839/video_310839-ch-sh21-03-03front2022-01-12_15_44_52.810.json'
+    gt = json.load(open(json_file, 'r'))
+    images = sorted(os.listdir(image_path))
+    for i, (image, g) in enumerate(zip(images, gt)):
+        img = cv2.imread(os.path.join(image_path, image))
+        # img = cv2.resize(img, (1080, 1920))
+        names = [box[0] for box in g['bbox_vector']]
+        if 'funnel_paper' not in names or 'glass_rod' not in names:
+            continue
+        for bbox in g['bbox_vector']:
+            if bbox[0] == 'funnel_paper':
+                funnel_paper_box = bbox[-1]
+            elif bbox[0] == 'glass_rod':
+                glass_rod_box = bbox[-1]
+        iou, max_box = cal_iou(funnel_paper_box, glass_rod_box)
+        max_box = unclip(max_box, img.shape[:2])
+        if iou > 0:
+            for bbox in g['bbox_vector']:
+                bbox = bbox[-1]
+                x1, y1, x2, y2 = bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + \
+                                 bbox[3]
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 1)
+            cv2.rectangle(img, (max_box[0], max_box[1]),
+                          (max_box[2], max_box[3]), (0, 0, 255), 1)
+            cv2.namedWindow('s', 0)
+            cv2.resizeWindow('s', 1080, 1920)
+            cv2.imshow('s', img)
+            cv2.waitKey()
+
+
+def remove_images(mode='train'):
+    path = f'/home/admin123/PycharmProjects/DATA/中科/按压v2/top/{mode}'
+    for folder in os.listdir(os.path.join(path)):
+        sub_folder = os.path.join(path, folder, 'images')
+        cmd = f'rm -r {sub_folder}'
+        subprocess.call(cmd, shell=True)
+
+
 if __name__ == '__main__':
-    check_duplicate()
+    move_data('train')
